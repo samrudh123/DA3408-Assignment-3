@@ -1,0 +1,74 @@
+name: spark-cluster
+
+x-spark-common: &spark-common
+  image: da3408-a3:latest
+  networks:
+    - sparknet
+  volumes:
+    - ./data:/data:ro
+    - ./output:/output
+    - .:/app
+    - ./scratch:/scratch
+  restart: on-failure
+
+services:
+  spark-master:
+    <<: *spark-common
+    build: .
+    container_name: spark-master
+    hostname: spark-master
+    environment:
+      SPARK_LOCAL_DIRS: /scratch/spark-master
+    command: >
+      spark-class org.apache.spark.deploy.master.Master
+      --host spark-master
+      --port 7077
+      --webui-port 8080
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+      - "4040:4040"
+    cpus: 2
+    mem_limit: 2g
+
+  spark-worker-1:
+    <<: *spark-common
+    container_name: spark-worker-1
+    hostname: spark-worker-1
+    environment:
+      SPARK_LOCAL_DIRS: /scratch/spark-worker-1
+    command: >
+      spark-class org.apache.spark.deploy.worker.Worker
+      spark://spark-master:7077
+      --cores 4
+      --memory 2g
+      --webui-port 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      - spark-master
+    cpus: 4
+    mem_limit: 4g
+
+  spark-worker-2:
+    <<: *spark-common
+    container_name: spark-worker-2
+    hostname: spark-worker-2
+    environment:
+      SPARK_LOCAL_DIRS: /scratch/spark-worker-2
+    command: >
+      spark-class org.apache.spark.deploy.worker.Worker
+      spark://spark-master:7077
+      --cores 4
+      --memory 2g
+      --webui-port 8081
+    ports:
+      - "8082:8081"
+    depends_on:
+      - spark-master
+    cpus: 4
+    mem_limit: 4g
+
+networks:
+  sparknet:
+    driver: bridge

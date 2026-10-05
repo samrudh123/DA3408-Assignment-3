@@ -1,0 +1,71 @@
+name: ray-cluster
+
+x-ray-common: &ray-common
+  image: da3408-a3:latest
+  networks:
+    - raynet
+  volumes:
+    - ./data:/data:ro
+    - ./output:/output
+    - .:/app
+    - ./scratch:/scratch
+  restart: on-failure
+
+services:
+  ray-head:
+    <<: *ray-common
+    build: .
+    container_name: ray-head
+    hostname: ray-head
+    command: >
+      ray start --head
+      --port=6379
+      --num-cpus=0
+      --dashboard-host=0.0.0.0
+      --dashboard-port=8265
+      --object-spilling-directory=/scratch/ray-head
+      --block
+    ports:
+      - "8265:8265"
+      - "6379:6379"
+    shm_size: 2gb
+    cpus: 2
+    mem_limit: 2g
+
+  ray-worker-1:
+    <<: *ray-common
+    container_name: ray-worker-1
+    hostname: ray-worker-1
+    command: >
+      ray start
+      --address=ray-head:6379
+      --num-cpus=4
+      --object-store-memory=1000000000
+      --object-spilling-directory=/scratch/ray-worker-1
+      --block
+    depends_on:
+      - ray-head
+    shm_size: 1200mb
+    cpus: 4
+    mem_limit: 4g
+
+  ray-worker-2:
+    <<: *ray-common
+    container_name: ray-worker-2
+    hostname: ray-worker-2
+    command: >
+      ray start
+      --address=ray-head:6379
+      --num-cpus=4
+      --object-store-memory=1000000000
+      --object-spilling-directory=/scratch/ray-worker-2
+      --block
+    depends_on:
+      - ray-head
+    shm_size: 1200mb
+    cpus: 4
+    mem_limit: 4g
+
+networks:
+  raynet:
+    driver: bridge
