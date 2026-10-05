@@ -157,3 +157,7 @@ The UI screenshots used in the report:
 | Ray stage runs with `Tasks: 1 [backpressured]` | Ray Data's object-store budget is exhausted. `ray_clean.py` sets `override_object_store_memory_limit_fraction=4.0` so excess data spills to disk instead. |
 | `Permission denied` on `output/` | Docker created the folder as root. Fix with `sudo chown -R $USER output scratch`. |
 | Job hangs at "Initial job has not accepted any resources" | `--executor-memory` is larger than the worker's `--memory` |
+
+## Demonstration Video Link
+
+[https://drive.google.com/file/d/1lUJ7HinBf106uwxZmlbGHclj7QQ5qSnp/view?usp=drive_link](https://drive.google.com/file/d/1lUJ7HinBf106uwxZmlbGHclj7QQ5qSnp/view?usp=drive_link)
